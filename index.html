@@ -414,13 +414,20 @@ function iniciarApp(){
 }
 
 // ======= API =======
-async function api(action,body={}){
-  if(!APPS_SCRIPT_URL) return null;
-  const isGet=Object.keys(body).length===0;
-  const url=isGet?`${APPS_SCRIPT_URL}?action=${action}`:APPS_SCRIPT_URL;
-  const opts=isGet?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...body})};
-  const res=await fetch(url,opts);
+async function api(action, body={}) {
+  if (!APPS_SCRIPT_URL) return null;
+  const params = new URLSearchParams({ action, ...flattenBody(body) });
+  const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
+  const res = await fetch(url, { method: 'GET', redirect: 'follow' });
   return res.json();
+}
+
+function flattenBody(body) {
+  const flat = {};
+  for (const [k, v] of Object.entries(body)) {
+    flat[k] = typeof v === 'object' ? JSON.stringify(v) : v;
+  }
+  return flat;
 }
 
 async function loadData(){
